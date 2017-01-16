@@ -18,27 +18,30 @@
     (call [this entity]
       (ReadOnlyObjectWrapper. (f (.getValue entity))))))
 
+(defn table-column [index name]
+  (controls/table-column
+   :text name
+   :cell-value-factory (cell-value-factory #(nth % index))))
+
 (defui Stage
   (render [this state]
           (controls/stage
            :title "fn-fx-ui"
            :shown true
-           :min-width 200
-           :min-height 200
            :scene (controls/scene
-                   :root (controls/v-box
-                          :children [(controls/button
-                                      :text "Import CSV"
-                                      :on-action {:event :import-csv
-                                                  :fn-fx/include {:fn-fx/event #{:target}}})
-                                     (controls/table-view
-                                      :columns [(controls/table-column
-                                                 :text "Foo"
-                                                 :cell-value-factory (cell-value-factory first))
-                                                (controls/table-column
-                                                 :text "Bar"
-                                                 :cell-value-factory (cell-value-factory second))]
-                                      :items (:data state))])))))
+                   :root (controls/border-pane
+                          :top (controls/h-box
+                                :children [(controls/button
+                                            :text "Import CSV"
+                                            :on-action {:event :import-csv
+                                                        :fn-fx/include {:fn-fx/event #{:target}}})
+                                           (controls/button
+                                            :text "Reset data")])
+                          :center (controls/table-view
+                                   :columns (map-indexed table-column (first (:data state)))
+                                   :items (rest (:data state))
+                                   :placeholder (controls/label
+                                                 :text "Import some data first")))))))
 
 (defmulti handle-event (fn [_ {:keys [event]}]
                          event))
@@ -52,11 +55,11 @@
                (doall (csv/read-csv reader)))]
     (assoc state :file file :data data)))
 
+(defonce data-state (atom {:data [[]]}))
+
 (defn -main
   [& args]
-  (let [data-state (atom {:csv nil
-                          :data [[]]})
-        handler-fn (fn [event]
+  (let [handler-fn (fn [event]
                      (println event)
                      (try
                        (swap! data-state handle-event event)
