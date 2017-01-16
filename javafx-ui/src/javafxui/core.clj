@@ -3,18 +3,40 @@
             [clojure.java.io  :as io])
   (:import [javafx.application Application]
            [javafx.scene Scene]
-           [javafx.scene.control Button]
-           [javafx.stage FileChooser])
+           [javafx.scene.control Button TableView TableColumn]
+           [javafx.stage FileChooser]
+           [javafx.scene.layout VBox])
   (:gen-class :extends javafx.application.Application))
 
-(defonce runtime-state (atom {:csv-file nil
+(defonce runtime-state (atom {:root nil
+                              :csv-file nil
                               :data nil}))
+
+(defn create-column [index name]
+  (let [column (TableColumn. name)]
+    #_(.setCellValueFactory column identity)
+    column))
+
+(defn render-table
+  [data]
+  (let [col-names (first data)
+        table-columns (map-indexed create-column col-names)
+        table-view (TableView.)]
+    (doseq [col table-columns]
+      (-> table-view
+          .getColumns
+          (.add col)))
+    (-> (:root @runtime-state)
+        .getChildren
+        (.add table-view))))
 
 (defn watch-fn [key reference old-state new-state]
   (println "-- Runtime State Changed from:")
   (println old-state)
   (println "-- to:")
-  (println new-state))
+  (println new-state)
+  (when (:data new-state)
+    (render-table (:data new-state))))
 
 (defn event-handler [f]
   (reify javafx.event.EventHandler
@@ -35,10 +57,15 @@
 
 (defn -start [app stage]
   (let [button (Button. "Import CSV")
-        scene (Scene. button)]
+        root (VBox.)
+        scene (Scene. root 800 600)]
     (add-watch runtime-state :main-watcher watch-fn)
+    (swap! runtime-state assoc :root root)
     (doto button
       (.setOnAction (event-handler show-file-dialog)))
+    (-> root
+        .getChildren
+        (.add button))
     (doto stage
       (.setTitle "JavaFX UI Spike")
       (.setScene scene)
