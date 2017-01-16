@@ -9,11 +9,17 @@
    [clojure.java.io :as io])
   (:import (javafx.application Application)
            (javafx.stage FileChooser)
-           (javafx.scene Scene))
+           (javafx.scene Scene)
+           (javafx.beans.property ReadOnlyObjectWrapper))
   (:gen-class :extends javafx.application.Application))
 
+(defn cell-value-factory [f]
+  (reify javafx.util.Callback
+    (call [this entity]
+      (ReadOnlyObjectWrapper. (f (.getValue entity))))))
+
 (defui Stage
-  (render [this args]
+  (render [this state]
           (controls/stage
            :title "fn-fx-ui"
            :shown true
@@ -24,7 +30,15 @@
                           :children [(controls/button
                                       :text "Import CSV"
                                       :on-action {:event :import-csv
-                                                  :fn-fx/include {:fn-fx/event #{:target}}})])))))
+                                                  :fn-fx/include {:fn-fx/event #{:target}}})
+                                     (controls/table-view
+                                      :columns [(controls/table-column
+                                                 :text "Foo"
+                                                 :cell-value-factory (cell-value-factory first))
+                                                (controls/table-column
+                                                 :text "Bar"
+                                                 :cell-value-factory (cell-value-factory second))]
+                                      :items (:data state))])))))
 
 (defmulti handle-event (fn [_ {:keys [event]}]
                          event))
@@ -40,7 +54,8 @@
 
 (defn -main
   [& args]
-  (let [data-state (atom {:csv nil})
+  (let [data-state (atom {:csv nil
+                          :data [[]]})
         handler-fn (fn [event]
                      (println event)
                      (try
