@@ -3,7 +3,7 @@
 Using JavaFX directly via Java interop with boot build tool.
 
 Boot does exit the application properly after closing the (last) GUI window. This is an issue
-encountered when using Leiningen instead.
+encountered when using the `fn-fx` lib with Leiningen.
 
 ## Issues
 

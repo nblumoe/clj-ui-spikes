@@ -4,8 +4,8 @@ Using JavaFX directly via Java interop.
 
 ## Issues
 
-REPL and uberjar do not work well yet. REPL does not recognize the `gen-class` generated class
-needed to launch the application. The uberjar fails with an invalid `-start` method invocation.
+REPL does not recognize the `gen-class` generated class needed to launch the application.
+Application can be run from the Uberjar and does exit properly when the (last) window is closed.
 
 ## License
 
