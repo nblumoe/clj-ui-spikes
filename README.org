@@ -1,0 +1,10 @@
+* Summary
+  Some spikes to evaluate different approaches for building GUIs with Clojure.
+  The different approaches can be found in corresponding subfolders.
+
+* Evaluation Requirements
+  The application should have a dialog to import a local csv file.
+  The csv file should get imported (needs to be all numerical data)
+  The file contents should get rendered in a table.
+  The data from the file gets rendered as a scatter plot, first column as x-values, each additional
+  column as y-values.
