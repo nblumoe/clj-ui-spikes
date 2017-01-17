@@ -31,6 +31,9 @@
            :scene (controls/scene
                    :root (controls/border-pane
                           :top (controls/h-box
+                                :padding (javafx.geometry.Insets. 15 12 15 12)
+                                :spacing 10
+                                :alignment (javafx.geometry.Pos/CENTER)
                                 :children [(controls/button
                                             :text "Import CSV"
                                             :on-action {:event :import-csv
