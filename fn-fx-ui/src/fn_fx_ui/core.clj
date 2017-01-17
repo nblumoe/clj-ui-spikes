@@ -25,18 +25,20 @@
    :text name
    :cell-value-factory (cell-value-factory #(nth % index))))
 
-(defn data-series []
-  (let [series [(javafx.scene.chart.XYChart$Series.)
-                (javafx.scene.chart.XYChart$Series.)]]
-    (doto (.getData (first series))
-      (.add (javafx.scene.chart.XYChart$Data. 1 3))
-      (.add (javafx.scene.chart.XYChart$Data. 7 10))
-      (.add (javafx.scene.chart.XYChart$Data. 14 3)))
-    (doto (.getData (second series))
-      (.add (javafx.scene.chart.XYChart$Data. 2 3))
-      (.add (javafx.scene.chart.XYChart$Data. 3 10))
-      (.add (javafx.scene.chart.XYChart$Data. 12 3)))
-    series))
+(defn data->series [data]
+  (if (some? data)
+    (let [transpose #(apply mapv vector %)
+          transposed-data (transpose data)
+          xs (rest (first transposed-data))
+          build-series (fn [[name & ys]]
+                         (let [series (javafx.scene.chart.XYChart$Series.)]
+                           (.setName series name)
+                           (doseq [[x y] (transpose [xs ys])]
+                             (.add (.getData series)
+                                   (javafx.scene.chart.XYChart$Data. (bigdec x) (bigdec y))))
+                           series))]
+      (map build-series transposed-data))
+    []))
 
 (defui Stage
   (render [this {:keys [data options] :as state}]
@@ -63,15 +65,15 @@
                                             :on-action {:event :reset})])
                           :center (controls/v-box
                                    :children [(controls/table-view
-                                               :columns (map-indexed table-column (first (:data state)))
-                                               :items (rest (:data state))
+                                               :columns (map-indexed table-column (first data))
+                                               :items (rest data)
                                                :placeholder (controls/label
                                                              :text "Import some data first"))
                                               (diff/component [:javafx.scene.chart.ScatterChart
                                                                []
                                                                [(javafx.scene.chart.NumberAxis.)
                                                                 (javafx.scene.chart.NumberAxis.)]]
-                                                              {:data (data-series)})]))))))
+                                                              {:data (data->series data)})]))))))
 (defmulti handle-event (fn [_ {:keys [event]}]
                          event))
 
