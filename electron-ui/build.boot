@@ -7,11 +7,12 @@
                  [weasel "0.7.0" :scope "test"]
                  [adzerk/boot-cljs "1.7.228-1" :scope "test"]
                  [adzerk/boot-cljs-repl "0.3.3" :scope "test"]
-                 [adzerk/boot-reload    "0.4.13"  :scope "test"]])
+                 [adzerk/boot-reload    "0.4.13"  :scope "test"]
+                 [reagent "0.6.0"]])
 
 (require
  '[adzerk.boot-cljs      :refer [cljs]]
- '[adzerk.boot-cljs-repl :refer [cljs-repl start-repl]]
+ '[adzerk.boot-cljs-repl :refer [cljs-repl cljs-repl-env start-repl]]
  '[adzerk.boot-reload    :refer [reload]])
 
 (deftask prod-build []
@@ -22,22 +23,22 @@
 
 (deftask dev-build []
   (comp ;; Audio feedback about warnings etc. =======================
-        (speak)
-        ;; Inject REPL and reloading code into renderer build =======
-        (cljs-repl :ids #{"renderer"})
-        (reload    :ids #{"renderer"}
-                   :ws-host "localhost"
-                   :on-jsload 'app.renderer/init
-                   :target-path "target")
-        ;; Compile renderer =========================================
-        (cljs      :ids #{"renderer"})
-        ;; Compile JS for main process ==============================
-        ;; path.resolve(".") which is used in CLJS's node shim
-        ;; returns the directory `electron` was invoked in and
-        ;; not the directory our main.js file is in.
-        ;; Because of this we need to override the compilers `:asset-path option`
-        ;; See http://dev.clojure.org/jira/browse/CLJS-1444 for details.
-        (cljs      :ids #{"main"}
-                   :compiler-options {:asset-path "target/main.out"
-                                      :closure-defines {'app.main/dev? true}})
-        (target)))
+   (speak)
+   ;; Inject REPL and reloading code into renderer build =======
+   (cljs-repl :ids #{"renderer"})
+   (reload    :ids #{"renderer"}
+              :ws-host "localhost"
+              :on-jsload 'app.renderer/init
+              :target-path "target")
+   ;; Compile renderer =========================================
+   (cljs      :ids #{"renderer"})
+   ;; Compile JS for main process ==============================
+   ;; path.resolve(".") which is used in CLJS's node shim
+   ;; returns the directory `electron` was invoked in and
+   ;; not the directory our main.js file is in.
+   ;; Because of this we need to override the compilers `:asset-path option`
+   ;; See http://dev.clojure.org/jira/browse/CLJS-1444 for details.
+   (cljs      :ids #{"main"}
+              :compiler-options {:asset-path "target/main.out"
+                                 :closure-defines {'app.main/dev? true}})
+   (target)))
