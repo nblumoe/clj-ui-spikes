@@ -101,23 +101,4 @@
       (.getWindow ((fn-fx.render-core/get-getter (type @(:root @us)) :scene) @(:root @us)))      )
   #_(.launch fn_fx_ui.core)
 
-  (let [st (stage @data-state)]
-    #_(doto (FileChooser.)
-        (.setTitle "fiii")
-        (.showOpenDialog @(:root old-ui)))
-    )
-
-  #_(doto (FileChooser.)
-      (.setTitle "fiii")
-      (.showOpenDialog (.getWindow (.getScene (:target (:fn-fx/event includes))))))
-  #_(-> (javafx.stage.FileChooser.)
-        (.setTitle "Foo Bar")
-        (.showOpenDialog stage)
-        )
-  #_(-> (controls/file-chooser
-         :title "Import CSV"
-         )
-        (.showOpenDialog)
-        )
-
   )
