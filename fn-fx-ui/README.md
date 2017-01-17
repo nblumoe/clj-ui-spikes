@@ -57,6 +57,22 @@ implemented function:
   [com.sun.glass.ui.InvokeLaterDispatcher$Future run InvokeLaterDispatcher.java 95]]}
 ```
 
+
+### Constructing components that have a constructor with mandatory arguments [SOLVED]
+
+For example ScatterPlot needs to have two axes in the constructor. Just using
+`controls/scatter-plot` seems not to allow passing those. `render-core/construct-control` seems to
+be something that might get used to do that.
+
+To trigger that, one would need to call `create-component!` not with a keyword `type` but a vector
+`[tp args]`.
+
+I was able to build the component myself via `diff/component` providing the class as keyword, an
+empty vector of `arg-names` (because the constructor has empty `prop-names-kw`) and the mandatory
+axes. This seems to be a bit brittle, because there is another constructor which has empty
+`prop-names-kw` but needs a third argument, the data to be plotted. At some point this constructor
+might be chosen by `diff/component` instead of the one we need.
+
 ## License
 
 Copyright © 2017 Dr. Nils Blum-Oeste
