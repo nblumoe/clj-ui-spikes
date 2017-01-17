@@ -4,12 +4,14 @@
    [fn-fx.diff :refer [component defui render should-update?]]
    [fn-fx.controls :as controls]
    [fn-fx.util :as util]
+   [fn-fx.diff :as diff]
    #_[fn-fx.render-core :as render-core]
    [clojure.data.csv :as csv]
    [clojure.java.io :as io])
   (:import (javafx.application Application)
            (javafx.stage FileChooser)
            (javafx.scene Scene)
+           (javafx.scene.chart.XYChart)
            (javafx.beans.property ReadOnlyObjectWrapper))
   (:gen-class :extends javafx.application.Application))
 
@@ -22,6 +24,19 @@
   (controls/table-column
    :text name
    :cell-value-factory (cell-value-factory #(nth % index))))
+
+(defn data-series []
+  (let [series [(javafx.scene.chart.XYChart$Series.)
+                (javafx.scene.chart.XYChart$Series.)]]
+    (doto (.getData (first series))
+      (.add (javafx.scene.chart.XYChart$Data. 1 3))
+      (.add (javafx.scene.chart.XYChart$Data. 7 10))
+      (.add (javafx.scene.chart.XYChart$Data. 14 3)))
+    (doto (.getData (second series))
+      (.add (javafx.scene.chart.XYChart$Data. 2 3))
+      (.add (javafx.scene.chart.XYChart$Data. 3 10))
+      (.add (javafx.scene.chart.XYChart$Data. 12 3)))
+    series))
 
 (defui Stage
   (render [this {:keys [data options] :as state}]
@@ -46,12 +61,17 @@
                                            (controls/button
                                             :text "Reset"
                                             :on-action {:event :reset})])
-                          :center (controls/table-view
-                                   :columns (map-indexed table-column (first (:data state)))
-                                   :items (rest (:data state))
-                                   :placeholder (controls/label
-                                                 :text "Import some data first")))))))
-
+                          :center (controls/v-box
+                                   :children [(controls/table-view
+                                               :columns (map-indexed table-column (first (:data state)))
+                                               :items (rest (:data state))
+                                               :placeholder (controls/label
+                                                             :text "Import some data first"))
+                                              (diff/component [:javafx.scene.chart.ScatterChart
+                                                               []
+                                                               [(javafx.scene.chart.NumberAxis.)
+                                                                (javafx.scene.chart.NumberAxis.)]]
+                                                              {:data (data-series)})]))))))
 (defmulti handle-event (fn [_ {:keys [event]}]
                          event))
 
