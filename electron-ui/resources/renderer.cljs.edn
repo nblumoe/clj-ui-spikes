@@ -1,0 +1,2 @@
+{:require  [app.renderer]
+ :init-fns [app.renderer/init]}
