@@ -24,7 +24,7 @@
    :cell-value-factory (cell-value-factory #(nth % index))))
 
 (defui Stage
-  (render [this state]
+  (render [this {:keys [data options] :as state}]
           (controls/stage
            :title "fn-fx-ui"
            :shown true
@@ -35,8 +35,14 @@
                                             :text "Import CSV"
                                             :on-action {:event :import-csv
                                                         :fn-fx/include {:fn-fx/event #{:target}}})
+                                           (controls/check-box
+                                            :text "Import first row as headers"
+                                            :selected (get-in options [:csv :first-row-headers])
+                                            :on-action {:event :toggle-option
+                                                        :path [:csv :first-row-headers]})
                                            (controls/button
-                                            :text "Reset data")])
+                                            :text "Reset"
+                                            :on-action {:event :reset})])
                           :center (controls/table-view
                                    :columns (map-indexed table-column (first (:data state)))
                                    :items (rest (:data state))
@@ -46,16 +52,31 @@
 (defmulti handle-event (fn [_ {:keys [event]}]
                          event))
 
+(def initial-state
+  {:options {:csv {:first-row-headers false}}
+   :data nil})
+
+(defonce data-state (atom initial-state))
+
+(defmethod handle-event :reset
+  [_ _]
+  initial-state)
+
+(defmethod handle-event :toggle-option
+  [state {:keys [path]}]
+  (update-in state (cons :options path) not))
+
 (defmethod handle-event :import-csv
-  [state {:keys [fn-fx/includes]}]
+  [{:keys [options] :as state} {:keys [fn-fx/includes]}]
   (let [window (.getWindow (.getScene (:target (:fn-fx/event includes))))
         dialog (doto (FileChooser.) (.setTitle "Import CSV"))
         file (util/run-and-wait (.showOpenDialog dialog window))
         data (with-open [reader (io/reader file)]
                (doall (csv/read-csv reader)))]
-    (assoc state :file file :data data)))
-
-(defonce data-state (atom {:data [[]]}))
+    (assoc state :file file :data
+           (if (get-in options [:csv :first-row-headers])
+             data
+             (cons (map #(str "x" (inc %)) (range (count (first data)))) data)))))
 
 (defn -main
   [& args]
