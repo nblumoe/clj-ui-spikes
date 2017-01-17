@@ -20,7 +20,8 @@ indicated by
 Solved it by using the function `run-and-wait` to show the dialog.
 
 ### Diffing fails in some cases [OPEN]
-
+The following issues means that the window sometimes needs to be closed and restarted via `(-main)`
+to have state changes propagate to the GUI.
 When updating the table data the diffing to rerender the UI can fail because of an not yet
 implemented function:
 
@@ -56,7 +57,6 @@ implemented function:
   [com.sun.javafx.application.PlatformImpl lambda$runLater$174 PlatformImpl.java 294]
   [com.sun.glass.ui.InvokeLaterDispatcher$Future run InvokeLaterDispatcher.java 95]]}
 ```
-
 
 ### Constructing components that have a constructor with mandatory arguments [SOLVED]
 
