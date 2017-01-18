@@ -6,6 +6,7 @@
   :dependencies [[org.clojure/clojure "1.8.0"]
                  [halgari/fn-fx "0.3.0-SNAPSHOT"]
                  [org.clojure/data.csv "0.1.3"]]
-  :main ^:skip-aot fn-fx-ui.core
+  :main fn-fx-ui.javafx-init
+  :aot [fn-fx-ui.javafx-init]
   :target-path "target/%s"
   :profiles {:uberjar {:aot :all}})

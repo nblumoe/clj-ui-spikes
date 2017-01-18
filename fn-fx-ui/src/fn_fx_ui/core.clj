@@ -12,8 +12,7 @@
            (javafx.stage FileChooser)
            (javafx.scene Scene)
            (javafx.scene.chart.XYChart)
-           (javafx.beans.property ReadOnlyObjectWrapper))
-  (:gen-class :extends javafx.application.Application))
+           (javafx.beans.property ReadOnlyObjectWrapper)))
 
 (defn cell-value-factory [f]
   (reify javafx.util.Callback
@@ -103,8 +102,7 @@
              data
              (cons (map #(str "x" (inc %)) (range (count (first data)))) data)))))
 
-(defn -main
-  [& args]
+(defn start []
   (let [handler-fn (fn [event]
                      (println event)
                      (try
@@ -120,10 +118,3 @@
                                         (println @data-state)
                                         (fx-dom/update-app old-ui (stage @data-state))
                                         ))))))
-
-(comment
-  #_(def window
-      (.getWindow ((fn-fx.render-core/get-getter (type @(:root @us)) :scene) @(:root @us)))      )
-  #_(.launch fn_fx_ui.core)
-
-  )

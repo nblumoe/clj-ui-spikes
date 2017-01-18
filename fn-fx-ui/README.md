@@ -73,6 +73,25 @@ axes. This seems to be a bit brittle, because there is another constructor which
 `prop-names-kw` but needs a third argument, the data to be plotted. At some point this constructor
 might be chosen by `diff/component` instead of the one we need.
 
+### Java process not quit after closing (last) window [WORKAROUND]
+
+https://stackoverflow.com/questions/15808063/how-to-stop-javafx-application-thread/22997736#22997736
+
+I was able to force close the application with this approach, setting an onClose EventHandler for
+the main stage:
+
+```
+(defn -start [app stage]
+  (let [exit (reify javafx.event.EventHandler
+               (handle [this event]
+                 (println "Closing application")
+                 (javafx.application.Platform/exit)))]
+    (doto stage
+      (.setOnCloseRequest exit)
+      (.setTitle "FOO")
+      (.show))))
+```
+
 ## License
 
 Copyright © 2017 Dr. Nils Blum-Oeste
