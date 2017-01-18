@@ -39,10 +39,16 @@
       (map build-series transposed-data))
     []))
 
+(def force-exit (reify javafx.event.EventHandler
+                  (handle [this event]
+                    (println "Closing application")
+                    (javafx.application.Platform/exit))))
+
 (defui Stage
   (render [this {:keys [data options] :as state}]
           (controls/stage
            :title "fn-fx-ui"
+           :on-close-request force-exit
            :shown true
            :scene (controls/scene
                    :root (controls/border-pane
@@ -102,7 +108,7 @@
              data
              (cons (map #(str "x" (inc %)) (range (count (first data)))) data)))))
 
-(defn start []
+(defn start [_]
   (let [handler-fn (fn [event]
                      (println event)
                      (try
