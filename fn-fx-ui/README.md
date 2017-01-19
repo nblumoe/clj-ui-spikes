@@ -92,6 +92,13 @@ the main stage:
       (.show))))
 ```
 
+### Diffing fails when setting values to nil [SOLVED]
+
+For the table view the `:items` key is used to set the table cell contents. When resetting the data
+(to an empty array) the empty list `(rest data)` ended up as a diff case `[:val :nil]` which was not
+implemented so I added that to `fn-fx.diff`
+([see GitHub](https://github.com/nblumoe/fn-fx/tree/add-val-to-nil-diff)).
+
 ## License
 
 Copyright © 2017 Dr. Nils Blum-Oeste
