@@ -4,7 +4,7 @@
    :extends javafx.application.Application))
 
 (defn -start [app stage]
-  (core/start stage))
+  (core/start true))
 
 (defn -main [& args]
   (javafx.application.Application/launch fn_fx_ui.javafx_init (into-array String args)))

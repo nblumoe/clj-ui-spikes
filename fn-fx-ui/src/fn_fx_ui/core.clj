@@ -5,7 +5,6 @@
    [fn-fx.controls :as controls]
    [fn-fx.util :as util]
    [fn-fx.diff :as diff]
-   #_[fn-fx.render-core :as render-core]
    [clojure.data.csv :as csv]
    [clojure.java.io :as io])
   (:import (javafx.application Application)
@@ -19,10 +18,11 @@
     (call [this entity]
       (ReadOnlyObjectWrapper. (f (.getValue entity))))))
 
-(defn table-column [index name]
-  (controls/table-column
-   :text name
-   :cell-value-factory (cell-value-factory #(nth % index))))
+(defui TableColumn
+  (render [this {:keys [index name]}]
+          (controls/table-column
+           :text name
+           :cell-value-factory (cell-value-factory #(nth % index)))))
 
 (defn data->series [data]
   (if (some? data)
@@ -39,16 +39,18 @@
       (map build-series transposed-data))
     []))
 
-(def force-exit (reify javafx.event.EventHandler
-                  (handle [this event]
-                    (println "Closing application")
-                    (javafx.application.Platform/exit))))
+(defn force-exit [root-stage?]
+  (reify javafx.event.EventHandler
+    (handle [this event]
+      (when root-stage?
+        (println "Closing application")
+        (javafx.application.Platform/exit)))))
 
 (defui Stage
-  (render [this {:keys [data options] :as state}]
+  (render [this {:keys [root-stage? data options] :as state}]
           (controls/stage
            :title "fn-fx-ui"
-           :on-close-request force-exit
+           :on-close-request (force-exit root-stage?)
            :shown true
            :scene (controls/scene
                    :root (controls/border-pane
@@ -70,7 +72,11 @@
                                             :on-action {:event :reset})])
                           :center (controls/v-box
                                    :children [(controls/table-view
-                                               :columns (map-indexed table-column (first data))
+                                               :columns (map-indexed
+                                                         (fn [index name]
+                                                           (table-column {:index index
+                                                                          :name name}))
+                                                         (first data))
                                                :items (rest data)
                                                :placeholder (controls/label
                                                              :text "Import some data first"))
@@ -84,7 +90,8 @@
 
 (def initial-state
   {:options {:csv {:first-row-headers false}}
-   :data nil})
+   :root-stage? false
+   :data [[]]})
 
 (defonce data-state (atom initial-state))
 
@@ -108,19 +115,22 @@
              data
              (cons (map #(str "x" (inc %)) (range (count (first data)))) data)))))
 
-(defn start [_]
-  (let [handler-fn (fn [event]
-                     (println event)
-                     (try
-                       (swap! data-state handle-event event)
-                       (catch Throwable exception
-                         (println exception))))
-        ui-state (agent (fx-dom/app (stage @data-state) handler-fn))]
+(defn start
+  ([] (start false))
+  ([root-stage?]
+   (swap! data-state assoc :root-stage? root-stage?)
+   (let [handler-fn (fn [event]
+                      (println event)
+                      (try
+                        (swap! data-state handle-event event)
+                        (catch Throwable exception
+                          (println exception))))
+         ui-state (agent (fx-dom/app (stage @data-state) handler-fn))]
 
-    (add-watch data-state :ui (fn [_ _ _ _]
-                                (send ui-state
-                                      (fn [old-ui]
-                                        (println "-- State Updated --")
-                                        (println @data-state)
-                                        (fx-dom/update-app old-ui (stage @data-state))
-                                        ))))))
+     (add-watch data-state :ui (fn [_ _ _ _]
+                                 (send ui-state
+                                       (fn [old-ui]
+                                         (println "-- State Updated --")
+                                         (println @data-state)
+                                         (fx-dom/update-app old-ui (stage @data-state))
+                                         )))))))
