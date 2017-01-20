@@ -3,7 +3,8 @@
 A spike with `fn-fx` to build a simple GUI with Clojure and JavaFX.
 
 ## Issues
-- Installed `fn-fx` locally because the latest versions are not on Clojars
+- Installed a patched `fn-fx` ([GitHub](https://github.com/nblumoe/fn-fx)) locally because the
+  latest versions are not on Clojars and it required some patching
 - Order of `requires` is important to get JavaFX initialize correctly and prevent issues with
 threads
 
@@ -19,7 +20,7 @@ indicated by
 
 Solved it by using the function `run-and-wait` to show the dialog.
 
-### Diffing fails in some cases [OPEN]
+### Diffing fails in some cases [SOLVED]
 The following issues means that the window sometimes needs to be closed and restarted via `(-main)`
 to have state changes propagate to the GUI.
 When updating the table data the diffing to rerender the UI can fail because of an not yet
