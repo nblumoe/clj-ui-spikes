@@ -24,25 +24,46 @@
            :text name
            :cell-value-factory (cell-value-factory #(nth % index)))))
 
+(defui Table
+  (render [this {:keys [data]}]
+          (controls/table-view
+           :columns (map-indexed
+                     (fn [index name]
+                       (table-column {:index index
+                                      :name name}))
+                     (first data))
+           :items (rest data)
+           :placeholder (controls/label
+                         :text "Import some data first"))))
+
 (defn data->series [data]
   (if (some? data)
     (let [transpose #(apply mapv vector %)
           transposed-data (transpose data)
           xs (rest (first transposed-data))
           build-series (fn [[name & ys]]
-                         (let [series (javafx.scene.chart.XYChart$Series.)]
-                           (.setName series name)
-                           (doseq [[x y] (transpose [xs ys])]
-                             (.add (.getData series)
-                                   (javafx.scene.chart.XYChart$Data. (bigdec x) (bigdec y))))
-                           series))]
+                         (diff/component :javafx.scene.chart.XYChart$Series
+                                         {:name name
+                                          :data (map
+                                                 #(javafx.scene.chart.XYChart$Data.
+                                                   (bigdec (first %))
+                                                   (bigdec (second %)))
+                                                 (transpose [xs ys]))}))]
       (map build-series transposed-data))
     []))
+
+(defui Plot
+  (render [this {:keys [data]}]
+          (diff/component [:javafx.scene.chart.ScatterChart
+                           []
+                           [(javafx.scene.chart.NumberAxis.)
+                            (javafx.scene.chart.NumberAxis.)]]
+                          {:data (data->series data)})))
 
 (defn force-exit [root-stage?]
   (reify javafx.event.EventHandler
     (handle [this event]
-      (when root-stage?
+      (when-not root-stage?
         (println "Closing application")
         (javafx.application.Platform/exit)))))
 
@@ -71,33 +92,21 @@
                                             :text "Reset"
                                             :on-action {:event :reset})])
                           :center (controls/v-box
-                                   :children [(controls/table-view
-                                               :columns (map-indexed
-                                                         (fn [index name]
-                                                           (table-column {:index index
-                                                                          :name name}))
-                                                         (first data))
-                                               :items (rest data)
-                                               :placeholder (controls/label
-                                                             :text "Import some data first"))
-                                              (diff/component [:javafx.scene.chart.ScatterChart
-                                                               []
-                                                               [(javafx.scene.chart.NumberAxis.)
-                                                                (javafx.scene.chart.NumberAxis.)]]
-                                                              {:data (data->series data)})]))))))
+                                   :children [(table {:data data})
+                                              (plot {:data data})]))))))
 (defmulti handle-event (fn [_ {:keys [event]}]
                          event))
 
 (def initial-state
   {:options {:csv {:first-row-headers false}}
-   :root-stage? false
+   :root-stage? true
    :data [[]]})
 
 (defonce data-state (atom initial-state))
 
 (defmethod handle-event :reset
-  [_ _]
-  initial-state)
+  [_ {:keys [root-stage?]}]
+  (assoc initial-state :root-stage? root-stage?))
 
 (defmethod handle-event :toggle-option
   [state {:keys [path]}]
@@ -116,15 +125,15 @@
              (cons (map #(str "x" (inc %)) (range (count (first data)))) data)))))
 
 (defn start
-  ([] (start false))
-  ([root-stage?]
-   (swap! data-state assoc :root-stage? root-stage?)
+  ([] (start {:root-stage? true}))
+  ([{:keys [root-stage?]}]
    (let [handler-fn (fn [event]
                       (println event)
                       (try
                         (swap! data-state handle-event event)
                         (catch Throwable exception
                           (println exception))))
+         _ (swap! data-state assoc :root-stage? root-stage?)
          ui-state (agent (fx-dom/app (stage @data-state) handler-fn))]
 
      (add-watch data-state :ui (fn [_ _ _ _]
@@ -132,5 +141,4 @@
                                        (fn [old-ui]
                                          (println "-- State Updated --")
                                          (println @data-state)
-                                         (fx-dom/update-app old-ui (stage @data-state))
-                                         )))))))
+                                         (fx-dom/update-app old-ui (stage @data-state)))))))))
