@@ -24,15 +24,15 @@
 
 (defui Table
   (render [this {:keys [data]}]
-          (controls/table-view
-           :columns (map-indexed
-                     (fn [index name]
-                       (table-column {:index index
-                                      :name name}))
-                     (first data))
-           :items (rest data)
-           :placeholder (controls/label
-                         :text "Import some data first"))))
+    (controls/table-view
+     :columns (map-indexed
+               (fn [index name]
+                 (table-column {:index index
+                                :name name}))
+               (first data))
+     :items (rest data)
+     :placeholder (controls/label
+                   :text "Import some data first"))))
 
 (defn data->series [data]
   (if (some? data)
@@ -52,11 +52,11 @@
 
 (defui Plot
   (render [this {:keys [data]}]
-          (diff/component [:javafx.scene.chart.ScatterChart
-                           []
-                           [(javafx.scene.chart.NumberAxis.)
-                            (javafx.scene.chart.NumberAxis.)]]
-                          {:data (data->series data)})))
+    (diff/component [:javafx.scene.chart.ScatterChart
+                     []
+                     [(javafx.scene.chart.NumberAxis.)
+                      (javafx.scene.chart.NumberAxis.)]]
+                    {:data (data->series data)})))
 
 (defn force-exit [root-stage?]
   (reify javafx.event.EventHandler
@@ -67,31 +67,32 @@
 
 (defui Stage
   (render [this {:keys [root-stage? data options] :as state}]
-          (controls/stage
-           :title "fn-fx-ui"
-           :on-close-request (force-exit root-stage?)
-           :shown true
-           :scene (controls/scene
-                   :root (controls/border-pane
-                          :top (controls/h-box
-                                :padding (javafx.geometry.Insets. 15 12 15 12)
-                                :spacing 10
-                                :alignment (javafx.geometry.Pos/CENTER)
-                                :children [(controls/button
-                                            :text "Import CSV"
-                                            :on-action {:event :import-csv
-                                                        :fn-fx/include {:fn-fx/event #{:target}}})
-                                           (controls/check-box
-                                            :text "Import first row as headers"
-                                            :selected (get-in options [:csv :first-row-headers])
-                                            :on-action {:event :toggle-option
-                                                        :path [:csv :first-row-headers]})
-                                           (controls/button
-                                            :text "Reset"
-                                            :on-action {:event :reset})])
-                          :center (controls/v-box
-                                   :children [(table {:data data})
-                                              (plot {:data data})]))))))
+    (controls/stage
+     :title "fn-fx-ui"
+     :on-close-request (force-exit root-stage?)
+     :shown true
+     :scene (controls/scene
+             :root (controls/border-pane
+                    :top (controls/h-box
+                          :padding (javafx.geometry.Insets. 15 12 15 12)
+                          :spacing 10
+                          :alignment (javafx.geometry.Pos/CENTER)
+                          :children [(controls/button
+                                      :text "Import CSV"
+                                      :on-action {:event :import-csv
+                                                  :fn-fx/include {:fn-fx/event #{:target}}})
+                                     (controls/check-box
+                                      :text "Import first row as headers"
+                                      :selected (get-in options [:csv :first-row-headers])
+                                      :on-action {:event :toggle-option
+                                                  :path [:csv :first-row-headers]})
+                                     (controls/button
+                                      :text "Reset"
+                                      :on-action {:event :reset})])
+                    :center (controls/v-box
+                             :children [(table {:data data})
+                                        (plot {:data data})]))))))
+
 (defmulti handle-event (fn [_ {:keys [event]}]
                          event))
 
