@@ -1,15 +1,13 @@
 (ns fn-fx-ui.core
   (:require
    [fn-fx.fx-dom :as fx-dom]
-   [fn-fx.diff :refer [component defui render should-update?]]
+   [fn-fx.diff :refer [component defui render]]
    [fn-fx.controls :as controls]
    [fn-fx.util :as util]
    [fn-fx.diff :as diff]
    [clojure.data.csv :as csv]
    [clojure.java.io :as io])
-  (:import (javafx.application Application)
-           (javafx.stage FileChooser)
-           (javafx.scene Scene)
+  (:import (javafx.stage FileChooser)
            (javafx.scene.chart.XYChart)
            (javafx.beans.property ReadOnlyObjectWrapper)))
 
