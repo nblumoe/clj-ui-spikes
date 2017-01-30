@@ -125,13 +125,13 @@
 (defn start
   ([] (start {:root-stage? true}))
   ([{:keys [root-stage?]}]
+   (swap! data-state assoc :root-stage? root-stage?)
    (let [handler-fn (fn [event]
                       (println event)
                       (try
                         (swap! data-state handle-event event)
                         (catch Throwable exception
                           (println exception))))
-         _ (swap! data-state assoc :root-stage? root-stage?)
          ui-state (agent (fx-dom/app (stage @data-state) handler-fn))]
 
      (add-watch data-state :ui (fn [_ _ _ _]
