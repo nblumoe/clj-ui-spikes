@@ -3,8 +3,6 @@
 A spike with `fn-fx` to build a simple GUI with Clojure and JavaFX.
 
 ## Issues
-- Installed a patched `fn-fx` ([GitHub](https://github.com/nblumoe/fn-fx)) locally because the
-  latest versions are not on Clojars and it required some patching
 - Order of `requires` is important to get JavaFX initialize correctly and prevent issues with
 threads
 
